@@ -114,7 +114,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <Navbar count={this.getcountOfCartItems()} />
-        <button onClick={this.handleAddProduct} style={{padding:20, fontSize:20}}>Add a product</button>
+        {/* <button onClick={this.handleAddProduct} style={{padding:20, fontSize:20}}>Add a product</button> */}
         <Cart
           onIncreaseQuantity={this.handleIncreaseQuantity}
           onDecreaseQuantity={this.handleDecreaseQuantity}
