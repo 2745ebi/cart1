@@ -95,26 +95,25 @@ class App extends React.Component {
 
     return cartTotal;
   };
-  handleAddProduct=()=>{
-    this.db.collection('products').add({
-        img:'',
-        title:'washing machine',
-        price: 999,
-        qty: 1
-  }).then((docRef)=>{
-    console.log('Product has been added', docRef);
-  })
-  .catch((error)=>{
-    console.error("Error adding product: ", error);
-  });
-}
-
+handleAddProduct = async () => {
+  try {
+    await addDoc(collection(db, "products"), {
+      title: "Washing machine",
+      price: 999,
+      qty: 1,
+      img: "https://media-ik.croma.com/prod/https://media.tatacroma.com/Croma%20Assets/Large%20Appliances/Washers%20and%20Dryers/Images/308169_nhjiel.png",
+    });
+  } 
+  catch (error) {
+    console.error("Error adding product:", error);
+  }
+};
   render() {
     const { products, loading } = this.state;
     return (
       <div className="App">
         <Navbar count={this.getcountOfCartItems()} />
-        {/* <button onClick={this.handleAddProduct} style={{padding:20, fontSize:20}}>Add a product</button> */}
+        <button onClick={this.handleAddProduct} style={{padding:20, fontSize:20}}>Add a product</button> 
         <Cart
           onIncreaseQuantity={this.handleIncreaseQuantity}
           onDecreaseQuantity={this.handleDecreaseQuantity}
