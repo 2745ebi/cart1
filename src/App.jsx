@@ -17,7 +17,7 @@ class App extends React.Component {
 componentDidMount() {
   const q = firestore.query(
     firestore.collection(db, "products"),
-    firestore.orderBy("title", "desc")
+    firestore.orderBy("title")
   );
 
   this.unsubscribe = firestore.onSnapshot(
