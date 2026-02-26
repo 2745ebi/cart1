@@ -3,7 +3,7 @@ import "./App.css";
 import Cart from "./Cart";
 import Navbar from "./Navbar";
 import { db } from "./firebase";
-import { collection, query, onSnapshot, addDoc } from "firebase/firestore";
+import * as firestore from "firebase/firestore";
 
 class App extends React.Component {
   constructor() {
@@ -14,106 +14,104 @@ class App extends React.Component {
     }
   }
 
-  componentDidMount() {
-    const q = query(collection(db, "products"));
-    this.unsubscribe = onSnapshot(q, (snapshot) => {
+componentDidMount() {
+  const q = firestore.query(
+    firestore.collection(db, "products"),
+    firestore.orderBy("title", "desc")
+  );
+
+  this.unsubscribe = firestore.onSnapshot(
+    q,
+    (snapshot) => {
       const products = snapshot.docs.map((doc) => {
         const data = doc.data();
-        data.id = doc.id;
-        // Convert to numbers to fix string concatenation bug
-        data.Qty = Number(data.qty || data.Qty || 0);
-        data.Price = Number(data.price || data.Price || 0);
-        data.Title = data.title || data.Title || "";
-        data.img = data.img || "";
-        return data;
+        return {
+          id: doc.id,
+          title: data.title || "",
+          price: Number(data.price || 0),
+          qty: Number(data.qty || 0),
+          img: data.img || ""
+        };
       });
-      this.setState({ products: products, loading: false });
-    }, (err) => console.error("Firebase Error:", err.message));
-  }
+
+      this.setState({ products, loading: false });
+    },
+    (err) => console.error("Firebase Error:", err.message)
+  );
+}
 
   componentWillUnmount() {
     if (this.unsubscribe) {
       this.unsubscribe();
     }
   }
+handleIncreaseQuantity = async (product) => {
+  const productRef = firestore.doc(db, "products", product.id);
+  await firestore.updateDoc(productRef, {
+    qty: product.qty + 1
+  });
+};
 
-  handleIncreaseQuantity = product => {
-    const { products } = this.state;
-    const index = products.indexOf(product);
+handleDecreaseQuantity = async (product) => {
+  if (product.qty === 0) return;
 
-    products[index].Qty += 1;
+  const productRef = firestore.doc(db, "products", product.id);
+  await firestore.updateDoc(productRef, {
+    qty: product.qty - 1
+  });
+};
 
-    this.setState({
-      products
-    });
-  };
+handleDecreaseQuantity = async (product) => {
+  if (product.qty === 0) return;
 
-  handleDecreaseQuantity = product => {
-    const { products } = this.state;
-    const index = products.indexOf(product);
-
-    if (products[index].Qty === 0) {
-      return;
-    }
-    products[index].Qty -= 1;
-
-    this.setState({
-      products
-    });
-  };
-
-  handleDeleteProduct = id => {
-    const { products } = this.state;
-
-    const items = products.filter(product => product.id !== id);
-
-    this.setState({
-      products: items
-    });
-  };
+  const productRef = firestore.doc(db, "products", product.id);
+  await firestore.updateDoc(productRef, {
+    qty: product.qty - 1
+  });
+};
 
   getcountOfCartItems = () => {
     const { products } = this.state;
     let count = 0;
 
     products.forEach(product => {
-      count += product.Qty || 0;
+      count += product.qty;
     });
 
     return count;
   };
 
-  getcartTotal = () => {
-    const { products } = this.state;
-    let cartTotal = 0;
+getcartTotal = () => {
+  let total = 0;
 
-    products.forEach(product => {
-      if (product.Qty > 0) {
-        cartTotal = cartTotal + product.Qty * product.Price;
-      }
-    });
+  this.state.products.forEach((product) => {
+    const qty = Number(product.qty);
+    const price = Number(product.price);
 
-    return cartTotal;
-  };
+    if (!isNaN(qty) && !isNaN(price)) {
+      total += qty * price;
+    }
+  });
+
+  return total;
+};
 handleAddProduct = async () => {
-  try {
-    await addDoc(collection(db, "products"), {
+  await firestore.addDoc(
+    firestore.collection(db, "products"),
+    {
       title: "Washing machine",
       price: 999,
       qty: 1,
-      img: "https://media-ik.croma.com/prod/https://media.tatacroma.com/Croma%20Assets/Large%20Appliances/Washers%20and%20Dryers/Images/308169_nhjiel.png",
-    });
-  } 
-  catch (error) {
-    console.error("Error adding product:", error);
-  }
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQptuYy3X4ibk8tuMmYj2WzjP8kcL7l0jXN9w&s"
+    }
+  );
 };
   render() {
     const { products, loading } = this.state;
     return (
       <div className="App">
         <Navbar count={this.getcountOfCartItems()} />
-        <button onClick={this.handleAddProduct} style={{padding:20, fontSize:20}}>Add a product</button> 
+        {/* <button onClick={this.handleAddProduct} style={{padding:20, fontSize:20}}>Add a product</button>  */}
         <Cart
           onIncreaseQuantity={this.handleIncreaseQuantity}
           onDecreaseQuantity={this.handleDecreaseQuantity}

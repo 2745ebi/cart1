@@ -1,6 +1,6 @@
 import React from 'react'
 const CartItem = (props) => {
-    const { Title, Price, Qty, img, id } = props.product
+    const { title, price, qty, img, id } = props.product
     const {
         product,
         onIncreaseQuantity,
@@ -13,9 +13,9 @@ const CartItem = (props) => {
                 <img style={styles.image} src={product.img}/>
             </div>
             <div className='right-block '>
-                <div style={ {fontSize:17}}>{Title}</div>
-                <div style={ {color:'black'}}>$ {Price}</div>
-                <div style={ {fontSize:20,color:'black'}}>Quantity : {Qty}</div>
+                <div style={ {fontSize:17}}>{title}</div>
+                <div style={ {color:'black'}}>$ {price}</div>
+                <div style={ {fontSize:20,color:'black'}}>Quantity : {qty}</div>
             <div className='cart-item-actions'>
                 {/*Buttons*/}
                 <img  
